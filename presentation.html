@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can AI Really Replace Engineers?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap%22 rel="stylesheet">
+<style>
+  :root{
+    --bg:#12151A;
+    --panel:#1A1F26;
+    --panel-2:#20262F;
+    --line:#2C333D;
+    --ink:#EBE8E1;
+    --ink-dim:#9AA3AD;
+    --ink-faint:#6B7480;
+    --amber:#E8A33D;
+    --amber-dim:#8A6A32;
+    --red:#E15A4C;
+    --red-dim:#6E332C;
+    --teal:#4FBBA6;
+    --teal-dim:#2F5C51;
+    --radius:2px;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    height:100%;
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    overflow:hidden;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+ 
+  #deck{
+    position:relative;
+    height:100vh;
+    height:100dvh;
+    width:100vw;
+    overflow:hidden;
+  }
+ 
+  .slide{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:calc(3.2rem + env(safe-area-inset-top,0px)) 5vw calc(4.6rem + env(safe-area-inset-bottom,0px));
+    opacity:0;
+    transform:translateX(24px);
+    pointer-events:none;
+    transition:opacity .35s ease, transform .35s ease;
+    overflow-y:auto;
+  }
+  .slide.active{
+    opacity:1;
+    transform:translateX(0);
+    pointer-events:auto;
+  }
+  .slide.exit-left{ transform:translateX(-24px); }
+ 
+  .slide-inner{
+    max-width:1180px;
+    width:100%;
+    margin:0 auto;
+  }
+ 
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    color:var(--ink-faint);
+    font-size:.8rem;
+    margin-bottom:1.1rem;
+  }
+  .eyebrow .tick{width:22px;height:1px;background:var(--amber-dim);display:inline-block;}
+  .eyebrow .time{color:var(--ink-dim);}
+ 
+  h1.title{font-size:clamp(2.2rem,5.4vw,4.2rem);line-height:1.04;}
+  h2.headline{font-size:clamp(1.7rem,3.6vw,2.7rem);line-height:1.12;margin-bottom:1.4rem;max-width:20ch;}
+  .lede{font-size:clamp(1rem,1.4vw,1.2rem);color:var(--ink-dim);max-width:62ch;line-height:1.6;margin-top:.6rem;}
+ 
+  .quote{
+    font-family:'Fraunces',Georgia,serif;
+    font-size:clamp(1.15rem,2vw,1.55rem);
+    line-height:1.5;
+    color:var(--ink);
+    border-left:2px solid var(--amber-dim);
+    padding-left:1.2rem;
+    margin:1.6rem 0;
+    max-width:60ch;
+  }
+  .quote cite{
+    display:block;
+    font-family:'IBM Plex Sans';
+    font-style:normal;
+    font-size:.82rem;
+    color:var(--ink-faint);
+    margin-top:.5rem;
+  }
+ 
+  /* ---- stat grid ---- */
+  .stat-row{display:flex;flex-wrap:wrap;gap:2.2rem;margin-top:1.8rem;}
+  .stat{min-width:150px;}
+  .stat .num{
+    font-family:'IBM Plex Mono';
+    font-weight:600;
+    font-size:clamp(1.8rem,3.4vw,2.7rem);
+    line-height:1;
+    color:var(--amber);
+  }
+  .stat.red .num{color:var(--red);}
+  .stat.teal .num{color:var(--teal);}
+  .stat .label{
+    color:var(--ink-dim);
+    font-size:.86rem;
+    margin-top:.5rem;
+    max-width:24ch;
+    line-height:1.4;
+  }
+ 
+  .source-tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono';
+    font-size:.7rem;
+    color:var(--ink-faint);
+    border:1px solid var(--line);
+    padding:.15rem .5rem;
+    border-radius:var(--radius);
+    margin-top:1.6rem;
+  }
+ 
+  /* ---- two column layout ---- */
+  .cols{display:grid;grid-template-columns:1.1fr 1fr;gap:3rem;align-items:start;}
+  @media (max-width:880px){.cols{grid-template-columns:1fr;}}
+ 
+  /* ---- diagram frame (terminal chrome, router-diagram style) ---- */
+  .diagram-frame{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .diagram-frame .tbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:.65rem .95rem;
+    border-bottom:1px solid var(--line);
+    background:var(--panel-2);
+  }
+  .diagram-frame .tbar .tleft{display:flex;align-items:center;gap:.6rem;}
+  .diagram-frame .tdots{display:flex;gap:.35rem;}
+  .diagram-frame .tdots span{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .diagram-frame .tdots span:nth-child(1){background:#E15A4C;}
+  .diagram-frame .tdots span:nth-child(2){background:#E8A33D;}
+  .diagram-frame .tdots span:nth-child(3){background:#4FBBA6;}
+  .diagram-frame .tlabel{
+    font-family:'IBM Plex Mono';
+    font-size:.68rem;
+    letter-spacing:.12em;
+    color:var(--ink-faint);
+  }
+  .diagram-frame .tlive{
+    display:flex;align-items:center;gap:.4rem;
+    font-family:'IBM Plex Mono';
+    font-size:.64rem;letter-spacing:.1em;color:var(--teal);
+  }
+  .diagram-frame .tlive .pulse{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:tpulse 1.6s infinite;}
+  @keyframes tpulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .diagram-frame .tbody{
+    padding:1.2rem .8rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:auto;
+  }
+  .diagram-frame svg{max-width:100%;height:auto;display:block;margin:0 auto;}
+  .diagram-frame .router-svg{width:100%;max-width:1000px;}
+ 
+  /* ---- gap cards ---- */
+  .gap-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    margin-top:1.6rem;
+  }
+  @media (max-width:1000px){.gap-grid{grid-template-columns:repeat(2,1fr);}}
+  .gap-card{
+    background:var(--panel);
+    padding:1.2rem 1rem;
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+  }
+  .gap-card .n{font-family:'IBM Plex Mono';color:var(--amber-dim);font-size:.78rem;}
+  .gap-card h3{font-size:1.02rem;margin:.5rem 0 .5rem;line-height:1.25;}
+  .gap-card p{font-size:.82rem;color:var(--ink-dim);line-height:1.45;margin:0;}
+ 
+  /* ---- cost stack ---- */
+  .cost-list{margin-top:1.8rem;display:flex;flex-direction:column;gap:0;}
+  .cost-item{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:2rem;
+    padding:1.3rem 0;
+    border-top:1px solid var(--line);
+  }
+  .cost-item:last-child{border-bottom:1px solid var(--line);}
+  @media (max-width:760px){.cost-item{grid-template-columns:1fr;gap:.4rem;}}
+  .cost-item h3{font-size:1.05rem;color:var(--amber);}
+  .cost-item p{color:var(--ink-dim);font-size:.9rem;line-height:1.5;margin:.3rem 0 0;max-width:56ch;}
+ 
+  /* ---- table (agi) ---- */
+  table.agi{width:100%;border-collapse:collapse;margin-top:1.6rem;font-size:.86rem;}
+  table.agi th{
+    text-align:left;
+    font-family:'IBM Plex Mono';
+    font-weight:500;
+    font-size:.72rem;
+    color:var(--ink-faint);
+    padding:.5rem .8rem .6rem 0;
+    border-bottom:1px solid var(--line);
+  }
+  table.agi td{
+    padding:.75rem .8rem .75rem 0;
+    border-bottom:1px solid var(--line);
+    color:var(--ink-dim);
+    vertical-align:top;
+    line-height:1.4;
+  }
+  table.agi td.cap{color:var(--ink);font-weight:500;}
+  table.agi td.why{color:var(--teal);}
+ 
+  /* ---- takeaways ---- */
+  .take-list{display:flex;flex-direction:column;gap:1.4rem;margin-top:2rem;}
+  .take{display:flex;gap:1.3rem;align-items:flex-start;}
+  .take .idx{
+    font-family:'IBM Plex Mono';
+    color:var(--amber-dim);
+    font-size:1.4rem;
+    line-height:1;
+    padding-top:.15rem;
+  }
+  .take p{margin:0;font-size:clamp(1rem,1.6vw,1.25rem);line-height:1.5;max-width:52ch;}
+  .take p.emph{color:var(--amber);}
+ 
+  .closing{
+    font-family:'Fraunces',Georgia,serif;
+    font-size:clamp(1.4rem,2.8vw,2.1rem);
+    line-height:1.45;
+    max-width:38ch;
+  }
+  .closing .accent{color:var(--red);}
+ 
+  .end-q{
+    margin-top:2rem;
+    font-family:'IBM Plex Mono';
+    font-size:.95rem;
+    color:var(--teal);
+  }
+ 
+  /* ---- delivery tips ---- */
+  .tip-list{margin-top:1.6rem;display:flex;flex-direction:column;gap:1.2rem;max-width:66ch;}
+  .tip-list .tip{padding-left:1rem;border-left:2px solid var(--line);}
+  .tip-list .tip b{color:var(--ink);}
+  .tip-list .tip span{display:block;color:var(--ink-dim);font-size:.92rem;margin-top:.2rem;line-height:1.5;}
+ 
+  /* ---- sources ---- */
+  .src-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem 3rem;margin-top:1.8rem;font-size:.9rem;}
+  @media (max-width:760px){.src-grid{grid-template-columns:1fr;}}
+  .src-grid div{padding:.6rem 0;border-bottom:1px solid var(--line);color:var(--ink-dim);}
+  .src-grid div b{color:var(--ink);display:block;font-size:.86rem;margin-bottom:.15rem;}
+ 
+  /* ---- nav ---- */
+  #nav{
+    position:fixed;
+    left:0;right:0;
+    bottom:0;
+    padding:0 5vw calc(1.2rem + env(safe-area-inset-bottom,0px));
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    z-index:20;
+  }
+  #dots{display:flex;gap:.4rem;flex-wrap:wrap;max-width:60vw;}
+  .dot{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:var(--line);
+    border:none;
+    cursor:pointer;
+    padding:0;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .dot.on{background:var(--amber);transform:scale(1.3);}
+  .navbtns{display:flex;align-items:center;gap:.8rem;}
+  .navbtn{
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:'IBM Plex Mono';
+    font-size:.78rem;
+    padding:.5rem .9rem;
+    border-radius:var(--radius);
+    cursor:pointer;
+  }
+  .navbtn:hover{border-color:var(--amber-dim);color:var(--amber);}
+  .navbtn:disabled{opacity:.35;cursor:default;}
+  .navbtn:disabled:hover{border-color:var(--line);color:var(--ink);}
+  #counter{font-family:'IBM Plex Mono';font-size:.75rem;color:var(--ink-faint);white-space:nowrap;}
+ 
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+</style>
+</head>
+<body>
+ 
+<div id="deck">
+ 
+  <!-- 0: TITLE -->
+  <section class="slide active" data-index="0">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Data-driven talk &middot; fact-checked against primary sources</div>
+      <h1 class="title">Can AI Really<br>Replace Engineers?</h1>
+      <p class="lede">The Data-Driven Reality &mdash; until AGI changes the game. The hard numbers on what happens when you hand code to AI at scale, and what it would actually take to close the gap.</p>
+      <p class="source-tag">Veracode &middot; GitClear &middot; METR &middot; USENIX &middot; Vectara &middot; SWE-bench</p>
+    </div>
+  </section>
+ 
+  <!-- 1: AGENDA / PIPELINE -->
+  <section class="slide" data-index="1">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Running order</div>
+      <h2 class="headline">Five phases, one argument</h2>
+      <div class="diagram-frame">
+        <div class="tbar">
+          <div class="tleft"><div class="tdots"><span></span><span></span><span></span></div><span class="tlabel">TALK&ndash;ROUTER</span></div>
+          <div class="tlive"><span class="pulse"></span>LIVE ARGUMENT</div>
+        </div>
+        <div class="tbody">
+        <svg class="router-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" font-family="'IBM Plex Sans', system-ui, sans-serif">
+          <defs>
+            <filter id="glowP" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+            <path id="a-q1" d="M 240 95 Q 320 260 390 260"/>
+            <path id="a-q2" d="M 240 255 L 390 260"/>
+            <path id="a-q3" d="M 240 415 Q 320 260 390 260"/>
+            <path id="a-p1" d="M 560 260 Q 680 55 740 55"/>
+            <path id="a-p2" d="M 560 260 Q 680 145 740 145"/>
+            <path id="a-p3" d="M 560 260 L 740 235"/>
+            <path id="a-p4" d="M 560 260 Q 680 325 740 325"/>
+            <path id="a-p5" d="M 560 260 Q 680 415 740 415"/>
+          </defs>
+          <g stroke="#2C333D" stroke-width="1.2" stroke-dasharray="4 4" fill="none">
+            <use href="#a-q1"/><use href="#a-q2"/><use href="#a-q3"/>
+            <use href="#a-p1"/><use href="#a-p2"/><use href="#a-p3"/><use href="#a-p4"/><use href="#a-p5"/>
+          </g>
+          <rect x="20" y="60" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="90" fill="#EBE8E1" font-size="14" font-weight="600">🎤 "AI is eating SWE"</text>
+          <text x="40" y="112" fill="#9AA3AD" font-size="11">the hype everyone repeats</text>
+          <rect x="20" y="220" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="250" fill="#EBE8E1" font-size="14" font-weight="600">📈 50M Copilot users</text>
+          <text x="40" y="272" fill="#9AA3AD" font-size="11">90% of Fortune 100 use it</text>
+          <rect x="20" y="380" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="410" fill="#EBE8E1" font-size="14" font-weight="600">❓ So why...</text>
+          <text x="40" y="432" fill="#9AA3AD" font-size="11">has no team been replaced?</text>
+          <g transform="translate(280, 250)">
+            <rect x="0" y="0" width="70" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+            <text x="35" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">CLAIMS</text>
+          </g>
+          <ellipse cx="475" cy="260" rx="105" ry="105" fill="#7C6CF0" opacity="0.06" filter="url(#glowP)">
+            <animate attributeName="opacity" values="0.04;0.11;0.04" dur="3s" repeatCount="indefinite"/>
+          </ellipse>
+          <rect x="390" y="200" width="170" height="120" rx="12" fill="#1B1730" stroke="#7C6CF0" stroke-width="1.5"/>
+          <text x="475" y="234" fill="#B9A8FF" font-size="20" text-anchor="middle">🧠</text>
+          <text x="475" y="266" fill="#EBE8E1" font-size="14" font-weight="700" text-anchor="middle" font-family="'IBM Plex Mono', monospace">ARGUMENT</text>
+          <text x="475" y="286" fill="#9AA3AD" font-size="10" text-anchor="middle">force multiplier,</text>
+          <text x="475" y="306" fill="#7C6CF0" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">not replacement</text>
+          <g transform="translate(615, 250)">
+            <rect x="0" y="0" width="100" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+            <text x="50" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">EVIDENCE</text>
+          </g>
+          <rect x="740" y="20" width="240" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <circle cx="965" cy="35" r="3" fill="#4FBBA6"/>
+          <text x="760" y="50" fill="#EBE8E1" font-size="14" font-weight="600">1 &middot; The Hook</text>
+          <text x="760" y="72" fill="#9AA3AD" font-size="11">Hype vs. Hard Numbers &middot; GitClear</text>
+          <rect x="740" y="110" width="240" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <circle cx="965" cy="125" r="3" fill="#7C6CF0"/>
+          <text x="760" y="140" fill="#EBE8E1" font-size="14" font-weight="600">2 &middot; The Security Crisis</text>
+          <text x="760" y="162" fill="#9AA3AD" font-size="11">Veracode &middot; Georgia Tech + Faros AI &middot; USENIX</text>
+          <rect x="740" y="200" width="240" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <circle cx="965" cy="215" r="3" fill="#E15A88"/>
+          <text x="760" y="230" fill="#EBE8E1" font-size="14" font-weight="600">3 &middot; The Reasoning Paradox</text>
+          <text x="760" y="252" fill="#9AA3AD" font-size="11">Vectara &mdash; smarter = worse grounding</text>
+          <rect x="740" y="290" width="240" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <circle cx="965" cy="305" r="3" fill="#E8A33D"/>
+          <text x="760" y="320" fill="#EBE8E1" font-size="14" font-weight="600">4 &middot; 5 Gaps AI Can't Bridge</text>
+          <text x="760" y="342" fill="#9AA3AD" font-size="11">METR RCT &middot; architectural limits</text>
+          <rect x="740" y="380" width="240" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <circle cx="965" cy="395" r="3" fill="#F27245"/>
+          <text x="760" y="410" fill="#EBE8E1" font-size="14" font-weight="600">5 &middot; Cost + The AGI Question</text>
+          <text x="760" y="432" fill="#9AA3AD" font-size="11">the real ROI &middot; what AGI would need</text>
+          <circle r="4" fill="#4FBBA6"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#a-q1"/></animateMotion></circle>
+          <circle r="4" fill="#7C6CF0"><animateMotion dur="4s" begin="1.3s" repeatCount="indefinite"><mpath href="#a-q2"/></animateMotion></circle>
+          <circle r="4" fill="#E8A33D"><animateMotion dur="4s" begin="2.6s" repeatCount="indefinite"><mpath href="#a-q3"/></animateMotion></circle>
+          <circle r="4" fill="#4FBBA6"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#a-p1"/></animateMotion></circle>
+          <circle r="4" fill="#7C6CF0"><animateMotion dur="4s" begin="0.8s" repeatCount="indefinite"><mpath href="#a-p2"/></animateMotion></circle>
+          <circle r="4" fill="#E15A88"><animateMotion dur="4s" begin="1.6s" repeatCount="indefinite"><mpath href="#a-p3"/></animateMotion></circle>
+          <circle r="4" fill="#E8A33D"><animateMotion dur="4s" begin="2.4s" repeatCount="indefinite"><mpath href="#a-p4"/></animateMotion></circle>
+          <circle r="4" fill="#F27245"><animateMotion dur="4s" begin="3.2s" repeatCount="indefinite"><mpath href="#a-p5"/></animateMotion></circle>
+        </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- 2: PHASE 1 HOOK -->
+  <section class="slide" data-index="2">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Phase 1 &middot; The Hook</div>
+      <h2 class="headline">We're shipping more code. Not better code.</h2>
+      <div class="cols">
+        <div>
+          <p class="lede">GitClear analyzed 211M lines of code from Google, Microsoft, Meta, and enterprise repos, 2020&ndash;2024. As AI coding adoption rose, three lines crossed.</p>
+          <div class="stat-row">
+            <div class="stat red"><div class="num">25%&rarr;&lt;10%</div><div class="label">of code changes that were refactoring</div></div>
+            <div class="stat amber"><div class="num">8.3%&rarr;12.3%</div><div class="label">copy-pasted code &mdash; overtook refactoring in 2024, first time ever</div></div>
+            <div class="stat red"><div class="num">3.1%&rarr;5.7%</div><div class="label">code churn: code rewritten within 2 weeks of being written</div></div>
+          </div>
+          <p class="quote">"We're shipping more code, faster. We're just not making it better. AI is really good at adding code. It's not cleaning any of it up."</p>
+          <p class="source-tag">Source: GitClear, 2020&ndash;2024</p>
+        </div>
+        <div class="diagram-frame">
+          <div class="tbar">
+            <div class="tleft"><div class="tdots"><span></span><span></span><span></span></div><span class="tlabel">GITCLEAR&ndash;ROUTER</span></div>
+            <div class="tlive"><span class="pulse"></span>2020&ndash;2024</div>
+          </div>
+          <div class="tbody">
+          <svg viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono">
+            <line x1="40" y1="20" x2="40" y2="250" stroke="#2C333D"/>
+            <line x1="40" y1="250" x2="340" y2="250" stroke="#2C333D"/>
+            <!-- refactoring -->
+            <text x="40" y="14" font-size="10" fill="#9AA3AD">Refactoring share of changes</text>
+            <rect x="60" y="20" width="34" height="230" fill="#3a3020"/>
+            <rect x="60" y="20" width="34" height="200" fill="none"/>
+            <rect x="60" y="250" width="34" height="-200" fill="#E8A33D" transform="translate(0,0)"/>
+            <rect x="60" y="50" width="34" height="200" fill="#E8A33D"/>
+            <text x="77" y="45" font-size="10" fill="#E8A33D" text-anchor="middle">25%</text>
+            <rect x="104" y="158" width="34" height="92" fill="#6E332C"/>
+            <text x="121" y="153" font-size="10" fill="#E15A4C" text-anchor="middle">&lt;10%</text>
+            <text x="99" y="268" font-size="9" fill="#6B7480" text-anchor="middle">2020 &rarr; 2024</text>
+ 
+            <!-- copy paste -->
+            <rect x="170" y="212" width="34" height="38" fill="#3a3020"/>
+            <text x="187" y="207" font-size="10" fill="#8A6A32" text-anchor="middle">8.3%</text>
+            <rect x="214" y="194" width="34" height="56" fill="#E8A33D"/>
+            <text x="231" y="189" font-size="10" fill="#E8A33D" text-anchor="middle">12.3%</text>
+            <text x="209" y="268" font-size="9" fill="#6B7480" text-anchor="middle">copy-paste</text>
+ 
+            <!-- churn -->
+            <rect x="280" y="234" width="34" height="16" fill="#2f5c51"/>
+            <text x="297" y="229" font-size="10" fill="#4FBBA6" text-anchor="middle">3.1%</text>
+            <rect x="324" y="221" width="34" height="29" fill="#E15A4C"/>
+            <text x="341" y="216" font-size="10" fill="#E15A4C" text-anchor="middle">5.7%</text>
+            <text x="319" y="268" font-size="9" fill="#6B7480" text-anchor="middle">churn</text>
+          </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- 3: PHASE 2A SECURITY -->
+  <section class="slide" data-index="3">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Phase 2 &middot; The Security Crisis</div>
+      <h2 class="headline">Bigger models are not getting more secure</h2>
+      <div class="stat-row">
+        <div class="stat red"><div class="num">45%</div><div class="label">of AI-generated code samples failed OWASP Top 10 tests &mdash; flat across 3 testing cycles</div></div>
+        <div class="stat red"><div class="num">72%</div><div class="label">failure rate for Java, the worst language tested</div></div>
+        <div class="stat red"><div class="num">86% / 88%</div><div class="label">failure rate on XSS defenses / log injection defenses</div></div>
+      </div>
+      <p class="source-tag">Source: Veracode 2025 GenAI Code Security Report &mdash; 100+ LLMs, 80 coding tasks</p>
+      <div style="margin-top:2rem;" class="stat-row">
+        <div class="stat amber"><div class="num">3&ndash;4&times;</div><div class="label">more frequent commits from AI-assisted developers</div></div>
+        <div class="stat amber"><div class="num">6 → 35</div><div class="label">AI-linked CVEs per month in a Georgia Tech study; Faros AI reported bugs +54% and incidents >3× (correlational)</div></div>
+        <div class="stat red"><div class="num">+322%</div><div class="label">jump in privilege-escalation paths</div></div>
+      </div>
+      <p class="source-tag">Source: Georgia Tech + Faros AI, Fortune 50 enterprise repositories</p>
+      <p class="quote" style="margin-top:1.6rem;">"AI optimizes for code that compiles and looks right. Security, maintainability, and 'does this actually match what we need' are externalities it doesn't understand."</p>
+    </div>
+  </section>
+ 
+  <!-- 4: PHASE 2B SLOPSQUATTING -->
+  <section class="slide" data-index="4">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Phase 2 &middot; The Security Crisis, cont.</div>
+      <h2 class="headline">Slopsquatting: the AI invents the package, attackers fill it in</h2>
+      <div class="cols">
+        <div>
+          <div class="stat-row">
+            <div class="stat red"><div class="num">19.7%</div><div class="label">of AI-recommended packages, across 576,000 samples, don't exist</div></div>
+            <div class="stat red"><div class="num">30,000+</div><div class="label">downloads of one hallucinated package before it was caught</div></div>
+          </div>
+          <p class="lede" style="margin-top:1.4rem;">Researchers tested 16 LLMs. Attackers pre-register those exact fake names on PyPI/npm and wait. One hallucinated package, <span class="mono" style="color:#E8A33D;">huggingface-cli</span>, was registered as a decoy and pulled 30,000+ downloads in 3 months &mdash; including from major companies referencing it in their own docs.</p>
+          <p class="source-tag">Source: USENIX Security 2025, "We Have a Package for You!"</p>
+        </div>
+        <div class="diagram-frame">
+          <div class="tbar">
+            <div class="tleft"><div class="tdots"><span></span><span></span><span></span></div><span class="tlabel">SLOP&ndash;ROUTER</span></div>
+            <div class="tlive"><span class="pulse" style="background:#E15A4C;"></span><span style="color:#E15A4C;">ATTACK LIVE</span></div>
+          </div>
+          <div class="tbody">
+          <svg class="router-svg" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" font-family="'IBM Plex Sans', system-ui, sans-serif">
+            <defs>
+              <filter id="glowR" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+              <path id="s-q1" d="M 240 195 L 390 200"/>
+              <path id="s-p1" d="M 560 200 Q 680 90 740 90"/>
+              <path id="s-p2" d="M 560 200 Q 680 310 740 310"/>
+            </defs>
+            <g stroke="#2C333D" stroke-width="1.2" stroke-dasharray="4 4" fill="none">
+              <use href="#s-q1"/><use href="#s-p1"/><use href="#s-p2"/>
+            </g>
+            <rect x="20" y="160" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+            <text x="40" y="190" fill="#EBE8E1" font-size="14" font-weight="600">👩‍💻 You ask AI</text>
+            <text x="40" y="212" fill="#9AA3AD" font-size="11">"give me a package for X"</text>
+            <g transform="translate(280, 190)">
+              <rect x="0" y="0" width="70" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+              <text x="35" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">PROMPT</text>
+            </g>
+            <ellipse cx="475" cy="200" rx="105" ry="105" fill="#E15A4C" opacity="0.06" filter="url(#glowR)">
+              <animate attributeName="opacity" values="0.04;0.13;0.04" dur="2.4s" repeatCount="indefinite"/>
+            </ellipse>
+            <rect x="390" y="140" width="170" height="120" rx="12" fill="#2A1A17" stroke="#E15A4C" stroke-width="1.5"/>
+            <text x="475" y="174" fill="#E15A4C" font-size="20" text-anchor="middle">⚠️</text>
+            <text x="475" y="206" fill="#EBE8E1" font-size="14" font-weight="700" text-anchor="middle" font-family="'IBM Plex Mono', monospace">HALLUCINATION</text>
+            <text x="475" y="226" fill="#9AA3AD" font-size="10" text-anchor="middle">plausible package name</text>
+            <text x="475" y="246" fill="#E15A4C" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">USENIX 2025</text>
+            <g transform="translate(615, 190)">
+              <rect x="0" y="0" width="90" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+              <text x="45" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">PACKAGE</text>
+            </g>
+            <rect x="740" y="55" width="240" height="70" rx="10" fill="#12251F" stroke="#2F5C51"/>
+            <text x="965" y="75" fill="#4FBBA6" font-size="10" text-anchor="end" font-family="'IBM Plex Mono', monospace">80.3%</text>
+            <text x="760" y="85" fill="#4FBBA6" font-size="14" font-weight="600">✅ Real package</text>
+            <text x="760" y="107" fill="#9AA3AD" font-size="11">you install it, ship it, done</text>
+            <rect x="740" y="275" width="240" height="70" rx="10" fill="#2A1A17" stroke="#6E332C"/>
+            <text x="965" y="295" fill="#E15A4C" font-size="10" text-anchor="end" font-family="'IBM Plex Mono', monospace">19.7%</text>
+            <text x="760" y="305" fill="#E15A4C" font-size="14" font-weight="600">🎭 Attacker was waiting</text>
+            <text x="760" y="327" fill="#9AA3AD" font-size="11">malware in your prod pipeline</text>
+            <circle r="4" fill="#F27245"><animateMotion dur="3.5s" repeatCount="indefinite"><mpath href="#s-q1"/></animateMotion></circle>
+            <circle r="4" fill="#4FBBA6"><animateMotion dur="3.5s" repeatCount="indefinite"><mpath href="#s-p1"/></animateMotion></circle>
+            <circle r="4" fill="#E15A4C"><animateMotion dur="3.5s" begin="1.7s" repeatCount="indefinite"><mpath href="#s-p2"/></animateMotion></circle>
+          </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- 5: PHASE 3 REASONING PARADOX -->
+  <section class="slide" data-index="5">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Phase 3 &middot; The Reasoning Paradox</div>
+      <h2 class="headline">Smarter models, worse grounding</h2>
+      <div class="cols">
+        <div>
+          <p class="lede">Vectara's 2026 hallucination benchmark used harder, longer documents &mdash; law, medicine, finance. GPT-5, Claude Sonnet 4.5, Grok-4, and Gemini-3-Pro all crossed 10% hallucination. A lightweight non-reasoning model (Gemini Flash-Lite) stayed at 3.3%.</p>
+          <p class="quote">"Reasoning models spend extra compute 'thinking through' an answer. During that thinking, they infer, connect dots, and generate insight beyond what's in the source material. That's great for math. It's hallucination when you need the model to just stick to the facts."</p>
+          <p class="quote" style="border-left-color:var(--red-dim);">"We're building models that are better at sounding confident than at being right. In production engineering, confident-and-wrong is the most expensive failure mode there is."</p>
+          <p class="source-tag">Source: Vectara Hallucination Leaderboard, 2026 update</p>
+        </div>
+        <div class="diagram-frame">
+          <div class="tbar">
+            <div class="tleft"><div class="tdots"><span></span><span></span><span></span></div><span class="tlabel">VECTARA&ndash;ROUTER</span></div>
+            <div class="tlive"><span class="pulse"></span>2026 BENCHMARK</div>
+          </div>
+          <div class="tbody">
+          <svg viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono">
+            <line x1="40" y1="10" x2="40" y2="220" stroke="#2C333D"/>
+            <line x1="40" y1="220" x2="340" y2="220" stroke="#2C333D"/>
+            <line x1="40" y1="90" x2="340" y2="90" stroke="#6E332C" stroke-dasharray="4 3"/>
+            <text x="345" y="94" font-size="9" fill="#E15A4C">10%</text>
+ 
+            <rect x="55" y="90" width="26" height="130" fill="#6E332C"/>
+            <text x="68" y="84" font-size="8" fill="#E15A4C" text-anchor="middle">&gt;10%</text>
+            <text x="68" y="234" font-size="8" fill="#9AA3AD" text-anchor="middle">GPT-5</text>
+ 
+            <rect x="100" y="90" width="26" height="130" fill="#6E332C"/>
+            <text x="113" y="84" font-size="8" fill="#E15A4C" text-anchor="middle">&gt;10%</text>
+            <text x="113" y="234" font-size="7.5" fill="#9AA3AD" text-anchor="middle">Sonnet 4.5</text>
+ 
+            <rect x="145" y="90" width="26" height="130" fill="#6E332C"/>
+            <text x="158" y="84" font-size="8" fill="#E15A4C" text-anchor="middle">&gt;10%</text>
+            <text x="158" y="234" font-size="8" fill="#9AA3AD" text-anchor="middle">Grok-4</text>
+ 
+            <rect x="190" y="90" width="26" height="130" fill="#6E332C"/>
+            <text x="203" y="84" font-size="8" fill="#E15A4C" text-anchor="middle">&gt;10%</text>
+            <text x="203" y="234" font-size="7.5" fill="#9AA3AD" text-anchor="middle">Gemini 3 Pro</text>
+ 
+            <rect x="250" y="190" width="30" height="30" fill="#2f5c51"/>
+            <text x="265" y="184" font-size="9" fill="#4FBBA6" text-anchor="middle">3.3%</text>
+            <text x="265" y="234" font-size="7.5" fill="#9AA3AD" text-anchor="middle">Flash-Lite</text>
+            <text x="190" y="20" font-size="9" fill="#6B7480" text-anchor="middle">reasoning models vs. one lightweight model</text>
+          </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- 6: PHASE 4 GAPS -->
+  <section class="slide" data-index="6">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Phase 4 &middot; 5 Gaps AI Can't Bridge</div>
+      <h2 class="headline">Not a bug. An architectural limitation.</h2>
+      <p class="lede" style="max-width:70ch;margin-top:-.6rem;margin-bottom:1.2rem;">So far this is "what AI gets wrong." Now let's talk about what it fundamentally can't do.</p>
+      <div class="diagram-frame" style="margin-bottom:0;">
+        <div class="tbar">
+          <div class="tleft"><div class="tdots"><span></span><span></span><span></span></div><span class="tlabel">GAP&ndash;ROUTER</span></div>
+          <div class="tlive"><span class="pulse"></span>NO GROUND TRUTH</div>
+        </div>
+        <div class="tbody">
+        <svg class="router-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" font-family="'IBM Plex Sans', system-ui, sans-serif">
+          <defs>
+            <filter id="glowA" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+            <path id="g-q1" d="M 240 255 L 390 260"/>
+            <path id="g-p0" d="M 560 260 Q 680 42 740 42"/>
+            <path id="g-p1" d="M 560 260 Q 680 120 740 120"/>
+            <path id="g-p2" d="M 560 260 Q 680 190 740 190"/>
+            <path id="g-p3" d="M 560 260 L 740 260"/>
+            <path id="g-p4" d="M 560 260 Q 680 330 740 330"/>
+            <path id="g-p5" d="M 560 260 Q 680 400 740 400"/>
+            <path id="g-p6" d="M 560 260 Q 680 478 740 478"/>
+          </defs>
+          <g stroke="#2C333D" stroke-width="1.2" stroke-dasharray="4 4" fill="none">
+            <use href="#g-q1"/><use href="#g-p0"/><use href="#g-p1"/><use href="#g-p2"/><use href="#g-p3"/><use href="#g-p4"/><use href="#g-p5"/><use href="#g-p6"/>
+          </g>
+          <rect x="20" y="220" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="250" fill="#EBE8E1" font-size="14" font-weight="600">🎫 A ticket lands</text>
+          <text x="40" y="272" fill="#9AA3AD" font-size="11">in our sprint board</text>
+          <g transform="translate(280, 250)">
+            <rect x="0" y="0" width="70" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+            <text x="35" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">INTAKE</text>
+          </g>
+          <ellipse cx="475" cy="260" rx="105" ry="105" fill="#E8A33D" opacity="0.05" filter="url(#glowA)">
+            <animate attributeName="opacity" values="0.04;0.11;0.04" dur="3s" repeatCount="indefinite"/>
+          </ellipse>
+          <rect x="390" y="200" width="170" height="120" rx="12" fill="#2A2415" stroke="#E8A33D" stroke-width="1.5"/>
+          <text x="475" y="234" fill="#E8A33D" font-size="20" text-anchor="middle">🧠</text>
+          <text x="475" y="266" fill="#EBE8E1" font-size="14" font-weight="700" text-anchor="middle" font-family="'IBM Plex Mono', monospace">TRIAGE</text>
+          <text x="475" y="286" fill="#9AA3AD" font-size="10" text-anchor="middle">mechanical or judgment?</text>
+          <text x="475" y="306" fill="#E8A33D" font-size="8" text-anchor="middle" font-family="'IBM Plex Mono', monospace">~40% / ~60% split — rule of thumb</text>
+          <g transform="translate(615, 250)">
+            <rect x="0" y="0" width="80" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+            <text x="40" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">ROUTED</text>
+          </g>
+          <rect x="740" y="10" width="240" height="65" rx="10" fill="#12251F" stroke="#2F5C51"/>
+          <text x="965" y="30" fill="#4FBBA6" font-size="10" text-anchor="end" font-family="'IBM Plex Mono', monospace">40%</text>
+          <text x="760" y="40" fill="#4FBBA6" font-size="13" font-weight="600">🤖 Boilerplate → AI ships</text>
+          <text x="760" y="60" fill="#9AA3AD" font-size="11">CRUD, tests, migrations</text>
+          <rect x="740" y="90" width="240" height="60" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="760" y="115" fill="#EBE8E1" font-size="13" font-weight="600">🏗️ System Design</text>
+          <text x="760" y="135" font-size="11" fill="#9AA3AD">no ground truth to bench</text>
+          <rect x="740" y="160" width="240" height="60" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="760" y="185" fill="#EBE8E1" font-size="13" font-weight="600">🐛 Legacy Debugging</text>
+      <text x="780" y="202" font-size="10" fill="#E15A4C">
+  METR RCT: 19% slower
+</text>
+<text x="780" y="214" font-size="10" fill="#E15A4C">
+  later ~18% faster data unreliable
+</text>
+          <rect x="740" y="230" width="240" height="60" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="760" y="255" fill="#EBE8E1" font-size="13" font-weight="600">🤝 Cross-Team Work</text>
+          <text x="760" y="275" font-size="11" fill="#9AA3AD">trust, not tickets</text>
+          <rect x="740" y="300" width="240" height="60" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="760" y="325" fill="#EBE8E1" font-size="13" font-weight="600">🎯 Business Context</text>
+          <text x="760" y="345" font-size="11" fill="#9AA3AD">ticket ≠ the real need</text>
+          <rect x="740" y="370" width="240" height="60" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="760" y="395" fill="#EBE8E1" font-size="13" font-weight="600">❓ Ambiguity Calls</text>
+          <text x="760" y="415" font-size="11" fill="#9AA3AD">60% info, one call</text>
+          <rect x="740" y="445" width="240" height="65" rx="10" fill="#241A30" stroke="#7C6CF0"/>
+          <text x="965" y="465" fill="#7C6CF0" font-size="10" text-anchor="end" font-family="'IBM Plex Mono', monospace">60%</text>
+          <text x="760" y="475" fill="#B9A8FF" font-size="13" font-weight="600">🧑‍💻 You ship it right</text>
+          <text x="760" y="495" fill="#9AA3AD" font-size="11">judgment + context</text>
+          <circle r="4" fill="#E8A33D"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#g-q1"/></animateMotion></circle>
+          <circle r="4" fill="#4FBBA6"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#g-p0"/></animateMotion></circle>
+          <circle r="4" fill="#E8A33D"><animateMotion dur="4s" begin="0.5s" repeatCount="indefinite"><mpath href="#g-p1"/></animateMotion></circle>
+          <circle r="4" fill="#E15A4C"><animateMotion dur="4s" begin="1s" repeatCount="indefinite"><mpath href="#g-p2"/></animateMotion></circle>
+          <circle r="4" fill="#E15A88"><animateMotion dur="4s" begin="1.5s" repeatCount="indefinite"><mpath href="#g-p3"/></animateMotion></circle>
+          <circle r="4" fill="#F27245"><animateMotion dur="4s" begin="2s" repeatCount="indefinite"><mpath href="#g-p4"/></animateMotion></circle>
+          <circle r="4" fill="#E8A33D"><animateMotion dur="4s" begin="2.5s" repeatCount="indefinite"><mpath href="#g-p5"/></animateMotion></circle>
+          <circle r="4" fill="#7C6CF0"><animateMotion dur="4s" begin="3s" repeatCount="indefinite"><mpath href="#g-p6"/></animateMotion></circle>
+        </svg>
+        </div>
+      </div>
+      <div class="gap-grid">
+        <div class="gap-card">
+          <div class="n">01</div>
+          <h3>System Design</h3>
+          <p>SWE-bench Verified has reached roughly 95–97% for leading systems and is now saturated; SWE-bench Pro is the harder benchmark to reference here &mdash; on isolated bugs with a known correct patch. System design has no ground truth to benchmark against at all.</p>
+        </div>
+        <div class="gap-card">
+          <div class="n">02</div>
+          <h3>Debugging Legacy Code</h3>
+          <p>METR RCT: 16 experienced devs, 5-year-old codebases. With AI tools, they were <b style="color:#E15A4C">19% slower in the 2025 RCT; later ~18% faster data was unreliable</b> &mdash; not the 24% faster they'd predicted, and not the 20% faster they still believed afterward.</p>
+        </div>
+        <div class="gap-card">
+          <div class="n">03</div>
+          <h3>Cross-Team Coordination</h3>
+          <p>AI can draft the Slack message. It can't decide whether to send it, or sense the other team lead is already burnt out this sprint.</p>
+        </div>
+        <div class="gap-card">
+          <div class="n">04</div>
+          <h3>Business Context &amp; Intent</h3>
+          <p>AI implements the ticket exactly as written. It doesn't know "sort by price" is a compliance requirement, or that this bug touches a $2M/day payment flow.</p>
+        </div>
+        <div class="gap-card">
+          <div class="n">05</div>
+          <h3>Handling Ambiguity</h3>
+          <p>"Make it faster" needs a senior engineer's judgment call with 60% information. AI needs a defined objective function. Ambiguity resolution is most of real engineering work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- 7: PHASE 5A COST STACK -->
+  <section class="slide" data-index="7">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Phase 5 &middot; The Cost Reality</div>
+      <h2 class="headline">Token cost isn't the real cost</h2>
+      <div class="cost-list">
+        <div class="cost-item">
+          <h3>Agentic loop overhead</h3>
+          <p>Plan &rarr; generate &rarr; test &rarr; fix &rarr; retest burns 10&ndash;50&times; the tokens of a one-shot answer on legacy code needing large context.</p>
+        </div>
+        <div class="cost-item">
+          <h3>Verification cost</h3>
+          <p>METR's core finding, as economics: AI shifts engineer time from writing into reviewing/correcting &mdash; and reviewing someone else's code is cognitively more expensive than writing your own.</p>
+        </div>
+        <div class="cost-item">
+          <h3>Security debt</h3>
+          <p>AI-linked CVEs rose from 6 → 35 per month in one Georgia Tech study; Faros AI reported bugs +54% and incidents >3×. These are correlational signals, not causal proof. means building a dedicated AI-code security review pipeline that didn't exist two years ago.</p>
+        </div>
+      </div>
+      <p class="quote" style="margin-top:1.8rem;">The real ROI question isn't "can AI write code faster" &mdash; it's "does AI reduce total cost from first commit to production-stable." Current best evidence says: not yet, not for experienced devs on mature systems.</p>
+    </div>
+  </section>
+ 
+  <!-- 8: PHASE 5B AGI TABLE -->
+  <section class="slide" data-index="8">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Phase 5 &middot; What Would AGI Actually Need?</div>
+      <h2 class="headline">Five capabilities, none of them here yet</h2>
+      <div class="diagram-frame">
+        <div class="tbar">
+          <div class="tleft"><div class="tdots"><span></span><span></span><span></span></div><span class="tlabel">AGI&ndash;ROUTER</span></div>
+          <div class="tlive"><span class="pulse"></span>NOT YET BUILT</div>
+        </div>
+        <div class="tbody">
+        <svg class="router-svg" viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" font-family="'IBM Plex Sans', system-ui, sans-serif">
+          <defs>
+            <filter id="glowAgi" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+            <path id="agi-q1" d="M 240 45 Q 320 260 390 260"/>
+            <path id="agi-q2" d="M 240 145 Q 320 260 390 260"/>
+            <path id="agi-q3" d="M 240 255 L 390 260"/>
+            <path id="agi-q4" d="M 240 365 Q 320 260 390 260"/>
+            <path id="agi-q5" d="M 240 465 Q 320 260 390 260"/>
+            <path id="agi-p1" d="M 560 260 Q 680 165 740 165"/>
+            <path id="agi-p2" d="M 560 260 Q 680 355 740 355"/>
+          </defs>
+          <g stroke="#2C333D" stroke-width="1.2" stroke-dasharray="4 4" fill="none">
+            <use href="#agi-q1"/><use href="#agi-q2"/><use href="#agi-q3"/><use href="#agi-q4"/><use href="#agi-q5"/>
+            <use href="#agi-p1"/><use href="#agi-p2"/>
+          </g>
+          <rect x="20" y="10" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="40" fill="#EBE8E1" font-size="14" font-weight="600">♟️ Long-horizon reasoning</text>
+          <text x="40" y="62" fill="#9AA3AD" font-size="11">with real stakes</text>
+          <rect x="20" y="110" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="140" fill="#EBE8E1" font-size="14" font-weight="600">🗂️ Persistent memory</text>
+          <text x="40" y="162" fill="#9AA3AD" font-size="11">of why, not just what</text>
+          <rect x="20" y="220" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="250" fill="#EBE8E1" font-size="14" font-weight="600">🫂 Social modeling</text>
+          <text x="40" y="272" fill="#9AA3AD" font-size="11">trust-building</text>
+          <rect x="20" y="330" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="360" fill="#EBE8E1" font-size="14" font-weight="600">🌍 Real-world grounding</text>
+          <text x="40" y="382" fill="#9AA3AD" font-size="11">outside the codebase</text>
+          <rect x="20" y="430" width="220" height="70" rx="10" fill="#161A21" stroke="#2C333D"/>
+          <text x="40" y="460" fill="#EBE8E1" font-size="14" font-weight="600">🎯 Self-directed goals</text>
+          <text x="40" y="482" fill="#9AA3AD" font-size="11">not just a given objective</text>
+          <g transform="translate(280, 250)">
+            <rect x="0" y="0" width="70" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+            <text x="35" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">GATES</text>
+          </g>
+          <ellipse cx="475" cy="260" rx="110" ry="110" fill="#E15A4C" opacity="0.05" filter="url(#glowAgi)">
+            <animate attributeName="opacity" values="0.03;0.11;0.03" dur="4s" repeatCount="indefinite"/>
+          </ellipse>
+          <rect x="390" y="200" width="170" height="120" rx="12" fill="#2A1A17" stroke="#E15A4C" stroke-width="1.5"/>
+          <text x="475" y="234" fill="#E15A4C" font-size="20" text-anchor="middle">🧬</text>
+          <text x="475" y="266" fill="#EBE8E1" font-size="14" font-weight="700" text-anchor="middle" font-family="'IBM Plex Mono', monospace">AGI GATE</text>
+          <text x="475" y="286" fill="#9AA3AD" font-size="10" text-anchor="middle">all 5 required</text>
+          <text x="475" y="306" fill="#E15A4C" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">any missing → fail</text>
+          <g transform="translate(615, 250)">
+            <rect x="0" y="0" width="80" height="22" rx="4" fill="#12151A" stroke="#2C333D"/>
+            <text x="40" y="15" fill="#9AA3AD" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono', monospace">OUTCOME</text>
+          </g>
+          <rect x="740" y="130" width="240" height="70" rx="10" fill="#12251F" stroke="#2F5C51"/>
+          <text x="965" y="150" fill="#4FBBA6" font-size="10" text-anchor="end" font-family="'IBM Plex Mono', monospace">TODAY</text>
+          <text x="760" y="160" fill="#4FBBA6" font-size="14" font-weight="600">🧑‍💻 Still needs you</text>
+          <text x="760" y="182" fill="#9AA3AD" font-size="11">force multiplier, not replacement</text>
+          <rect x="740" y="320" width="240" height="70" rx="10" fill="#2A1A17" stroke="#E15A4C"/>
+          <text x="965" y="340" fill="#E15A4C" font-size="10" text-anchor="end" font-family="'IBM Plex Mono', monospace">HYPOTHETICAL</text>
+          <text x="760" y="350" fill="#E15A4C" font-size="14" font-weight="600">🧬 AGI reached</text>
+          <text x="760" y="372" fill="#9AA3AD" font-size="11">full replacement now possible</text>
+          <circle r="4" fill="#7C6CF0"><animateMotion dur="4.5s" repeatCount="indefinite"><mpath href="#agi-q1"/></animateMotion></circle>
+          <circle r="4" fill="#4FBBA6"><animateMotion dur="4.5s" begin="0.7s" repeatCount="indefinite"><mpath href="#agi-q2"/></animateMotion></circle>
+          <circle r="4" fill="#E8A33D"><animateMotion dur="4.5s" begin="1.4s" repeatCount="indefinite"><mpath href="#agi-q3"/></animateMotion></circle>
+          <circle r="4" fill="#E15A88"><animateMotion dur="4.5s" begin="2.1s" repeatCount="indefinite"><mpath href="#agi-q4"/></animateMotion></circle>
+          <circle r="4" fill="#F27245"><animateMotion dur="4.5s" begin="2.8s" repeatCount="indefinite"><mpath href="#agi-q5"/></animateMotion></circle>
+          <circle r="4" fill="#4FBBA6"><animateMotion dur="4s" repeatCount="indefinite"><mpath href="#agi-p1"/></animateMotion></circle>
+          <circle r="4" fill="#E15A4C"><animateMotion dur="4s" begin="2s" repeatCount="indefinite"><mpath href="#agi-p2"/></animateMotion></circle>
+        </svg>
+        </div>
+      </div>
+      <p class="quote" style="margin-top:1.6rem;">That combination is close to a working definition of AGI itself. Until it exists, the ~40/60 split is a rule of thumb, not a study result: AI is strongest on mechanical work, while judgment-heavy engineering remains harder to automate end-to-end.</p>
+    </div>
+  </section>
+ 
+  <!-- 9: CLOSING PUNCHLINE -->
+  <section class="slide" data-index="9">
+    <div class="slide-inner">
+      <p class="closing">"AI is the most powerful autocomplete ever built. It'll make a great engineer 10&times; more productive on the mechanical parts.</p>
+      <p class="closing" style="margin-top:1.2rem;">It will <span class="accent">not</span> replace the engineer who understands architecture, business context, team dynamics, and has the judgment to ship with incomplete information."</p>
+      <p class="lede" style="margin-top:1.8rem;max-width:52ch;">"The biggest advantage may go to engineers who use AI to reduce mechanical work and reinvest the saved time in architecture, verification, product context, and higher-leverage decisions."</p>
+    </div>
+  </section>
+ 
+  <!-- 10: TAKEAWAYS -->
+  <section class="slide" data-index="10">
+    <div class="slide-inner">
+      <h2 class="headline">What to remember</h2>
+      <div class="take-list">
+        <div class="take"><div class="idx mono">01</div><p>AI accelerates typing, not judgment &mdash; and judgment is most of the job.</p></div>
+        <div class="take"><div class="idx mono">02</div><p class="emph">METR’s 2025 RCT found experienced developers took 19% longer with AI on the tested tasks; later late-2025 data suggested ~18% faster, but METR said that later dataset was unreliable. The evidence is mixed, not a universal speedup or slowdown.</p></div>
+        <div class="take"><div class="idx mono">03</div><p>Full replacement needs AGI-level reasoning + memory + social modeling &mdash; not just a better autocomplete.</p></div>
+      </div>
+    </div>
+  </section>
+<!-- 12: SOURCES -->
+  <section class="slide" data-index="12">
+    <div class="slide-inner">
+      <div class="eyebrow"><span class="tick"></span> Sources</div>
+      <h2 class="headline">Keep this handy for Q&amp;A</h2>
+      <div class="src-grid">
+        <div><b>GitClear</b>211M lines of code, Google/Microsoft/Meta &amp; enterprise repos, 2020&ndash;2024</div>
+        <div><b>Veracode</b>2025 GenAI Code Security Report &mdash; 100+ LLMs, 80 coding tasks</div>
+        <div><b>Georgia Tech + Faros AI</b>Security findings analysis, Fortune 50 enterprise repositories</div>
+        <div><b>USENIX Security 2025</b>"We Have a Package for You!" &mdash; 16 LLMs, 576,000 code samples</div>
+        <div><b>Vectara</b>Hallucination Leaderboard, 2026 update</div>
+        <div><b>METR</b>Randomized controlled trial, 16 experienced open-source developers</div>
+        <div><b>SWE-bench Pro</b>Coding agent benchmark &mdash; Claude Opus 4.6, Gemini 3.1 Pro</div>
+      </div>
+    </div>
+  </section>
+ 
+</div>
+ 
+<div id="nav">
+  <div class="navbtns">
+    <button class="navbtn" id="prevBtn">&larr; Prev</button>
+    <button class="navbtn" id="nextBtn">Next &rarr;</button>
+  </div>
+  <div id="dots"></div>
+  <div id="counter">01 / 13</div>
+</div>
+ 
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+ 
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot' + (i === 0 ? ' on' : '');
+    b.setAttribute('aria-label', 'Go to slide ' + (i+1));
+    b.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(b);
+  });
+  const dots = Array.from(dotsEl.children);
+  const counter = document.getElementById('counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+ 
+  function update(){
+    slides.forEach((s, i) => {
+      s.classList.remove('active','exit-left');
+      if(i === current) s.classList.add('active');
+    });
+    dots.forEach((d,i) => d.classList.toggle('on', i === current));
+    counter.textContent = String(current+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+  }
+ 
+  function goTo(i){
+    if(i < 0 || i >= total || i === current) return;
+    current = i;
+    update();
+  }
+  function next(){ goTo(current + 1); }
+  function prev(){ goTo(current - 1); }
+ 
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+ 
+  window.addEventListener('keydown', (e) => {
+    if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); next(); }
+    else if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); prev(); }
+    else if(e.key === 'Home'){ goTo(0); }
+    else if(e.key === 'End'){ goTo(total-1); }
+  });
+ 
+  let touchStartX = null;
+  document.getElementById('deck').addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+  }, {passive:true});
+  document.getElementById('deck').addEventListener('touchend', (e) => {
+    if(touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
+    touchStartX = null;
+  }, {passive:true});
+ 
+  update();
+</script>
+</body>
+</html>
+ 
